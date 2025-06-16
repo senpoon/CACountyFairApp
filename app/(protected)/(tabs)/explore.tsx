@@ -1,20 +1,22 @@
 import * as Location from 'expo-location';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Alert, Button, StyleSheet, TextInput } from 'react-native';
 
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { AuthContext } from '@/utils/authContext';
 
 export default function TabTwoScreen() {
   const [description, setDescription] = useState('');
   const [title, setTitle] = useState('');
-  const [userID, setUserID] = useState('');
+  const auth = useContext(AuthContext);
+  const userID = auth.username;
 
   const handleLogVisit = async () => {
-    if (!userID || !description) {
-      Alert.alert('Missing Info', 'Please enter both a User ID and Description');
+    if (!description) {
+      Alert.alert('Missing Info', 'Please enter a Description');
       return;
     }
 
@@ -28,7 +30,7 @@ export default function TabTwoScreen() {
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
 
-      const lincoln = `${userID}-${Date.now()}`;
+      const lincoln = `${auth.username}-${Date.now()}`;
 
       const payload = {
         lincoln,
@@ -39,23 +41,22 @@ export default function TabTwoScreen() {
         locationlong: longitude,
       };
 
-      const response = await fetch('https://haha you thought nerd.execute-api.us-wEAST.amazonaws.com/', {
+      const response = await fetch('https://sxjumw54s2.execute-api.us-east-2.amazonaws.com/dev/locations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-client-id': 'haha u thought nerd',
-          'x-client-secret': 'haha u thought nerd',
+          'x-client-id': process.env.EXPO_PUBLIC_CLIENT_ID_LOCATIONS,
+          'x-client-secret': process.env.EXPO_PUBLIC_CLIENT_SECRET_LOCATIONS,
         },
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      const result = await response.json() || {};
 
       if (response.ok) {
         Alert.alert('Success', 'Location logged!');
         setDescription('');
         setTitle('');
-        setUserID('');
       } else {
         Alert.alert('Error', result.error || 'Failed to log');
       }
@@ -81,12 +82,6 @@ export default function TabTwoScreen() {
 
       <ThemedText>Capture your county fair visit in time to look back on it</ThemedText>
       
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your user ID"
-        value={userID}
-        onChangeText={setUserID}
-      />
       <TextInput
         style={styles.input}
         placeholder="County Fair Title"

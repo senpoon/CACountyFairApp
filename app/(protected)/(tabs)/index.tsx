@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { AuthContext } from '@/utils/authContext';
+import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -14,21 +15,25 @@ type FairLocation = {
 
 
 export default function HomeScreen() {
+
+
 const [fairLocations, setFairLocations] = useState<FairLocation[]>([]);
+
+const auth = useContext(AuthContext);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('https://haha you thought nerd.execute-api.us-wEAST.amazonaws.com/', {
-          method: 'get',
+        const response = await fetch('https://sxjumw54s2.execute-api.us-east-2.amazonaws.com/dev/locations?userID=' + auth.username, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'x-client-id': 'haha u thought nerd',
-            'x-client-secret': 'haha u thought nerd',
+            'x-client-id': process.env.EXPO_PUBLIC_CLIENT_ID_LOCATIONS,
+            'x-client-secret': process.env.EXPO_PUBLIC_CLIENT_SECRET_LOCATIONS,
           },
         });
 
-        const data = await response.json();
+        const data = await response.json() || {};
         console.log(data)
         setFairLocations(data); // 👈 Now your markers update dynamically
       } catch (error) {
